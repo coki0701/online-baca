@@ -9,11 +9,24 @@ use App\Models\Category;
 class CategoryController extends Controller
 {
 
-    public function index()
-    {
-        $categories = Category::all();
-        return view('admin.categories.index', compact('categories'));
+    public function index(Request $request)
+{
+    $query = Category::query();
+
+    if ($request->search) {
+
+        $query->where(
+            'name',
+            'like',
+            '%' . $request->search . '%'
+        );
+
     }
+
+    $categories = $query->latest()->paginate(10)->withQueryString();
+
+    return view('admin.categories.index', compact('categories'));
+}
 
     public function create()
     {
@@ -23,8 +36,11 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required'
-        ]);
+            'name' => 'required|string|max:255|unique:categories,name',
+        ], [
+            'name.required' => 'Nama kategori wajib diisi',
+            'name.unique' => 'Kategori sudah ada',
+            ]);
 
         Category::create([
             'name' => $request->name
@@ -42,11 +58,14 @@ class CategoryController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'name' => 'required'
-        ]);
-
         $category = Category::findOrFail($id);
+
+        $request->validate([
+        'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
+    ], [
+        'name.required' => 'Nama kategori wajib diisi',
+        'name.unique' => 'Kategori sudah ada',
+        ]);
 
         $category->update([
             'name' => $request->name
@@ -57,12 +76,45 @@ class CategoryController extends Controller
     }
 
     public function destroy($id)
-    {
-        $category = Category::findOrFail($id);
-        $category->delete();
+{
+    $category = Category::findOrFail($id);
 
-        return redirect()->route('admin.categories.index')
-        ->with('success','Kategori berhasil dihapus');
+    /*
+    |--------------------------------------------------------------------------
+    | CEK APAKAH MASIH DIGUNAKAN BUKU
+    |--------------------------------------------------------------------------
+    */
+
+    $totalBooks = \App\Models\Book::where(
+        'category_id',
+        $category->id
+    )->count();
+
+    if ($totalBooks > 0) {
+
+        return redirect()
+            ->route('admin.categories.index')
+            ->with(
+                'error',
+                'Kategori tidak bisa dihapus karena masih digunakan buku'
+            );
+
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | HAPUS KATEGORI
+    |--------------------------------------------------------------------------
+    */
+
+    $category->delete();
+
+    return redirect()
+        ->route('admin.categories.index')
+        ->with(
+            'success',
+            'Kategori berhasil dihapus'
+        );
+}
 
 }

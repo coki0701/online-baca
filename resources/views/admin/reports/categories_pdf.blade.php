@@ -76,13 +76,20 @@
         </thead>
 
         <tbody>
-            @foreach($categories as $category)
+            @forelse($categories as $category)
             <tr>
                 <td class="text-center">{{ $loop->iteration }}</td>
                 <td>{{ $category->name }}</td>
                 <td class="text-center">{{ $category->books_count }}</td>
             </tr>
-            @endforeach
+
+            @empty
+            <tr>
+                <td colspan="3" class="text-center">
+                    Tidak ada data kategori.
+                </td>
+            </tr>
+            @endforelse
         </tbody>
     </table>
 

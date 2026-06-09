@@ -21,10 +21,10 @@
 
         </div>
 
-        <div class="d-flex gap-2 flex-wrap">
+                <div class="d-flex gap-2 flex-wrap">
 
             <a href="{{ route('admin.reports.books.pdf') }}"
-               class="btn btn-primary rounded-pill px-4">
+            class="btn btn-primary rounded-pill px-4">
 
                 <i class="fa fa-book me-1"></i>
                 Export Buku
@@ -32,24 +32,22 @@
             </a>
 
             <a href="{{ route('admin.reports.categories.pdf') }}"
-               class="btn btn-success rounded-pill px-4">
+            class="btn btn-success rounded-pill px-4">
 
                 <i class="fa fa-layer-group me-1"></i>
                 Export Kategori
 
             </a>
 
-        </div>
-
             <a href="{{ route('admin.reports.visitors.pdf') }}"
-               class="btn btn-dark rounded-pill px-4">
+            class="btn btn-dark rounded-pill px-4">
 
                 <i class="fa fa-eye me-1"></i>
                 Export Pengunjung
 
             </a>
 
-    </div>
+        </div>
 
     {{-- STATISTIK --}}
     <div class="row g-4 mb-4">

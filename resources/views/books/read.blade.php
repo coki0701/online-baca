@@ -70,6 +70,10 @@
     padding:18px;
 }
 
+.comment-item p{
+    word-break: break-word;
+}
+
 .avatar{
     width:50px;
     height:50px;
@@ -108,6 +112,27 @@
 
 .dark-mode .text-muted{
     color:#cbd5e1 !important;
+}
+
+@media (max-width: 768px){
+
+    .pdf-frame{
+        height:65vh;
+        border-radius:14px;
+    }
+
+    .viewer-box{
+        padding:12px;
+    }
+
+    .book-sidebar{
+        padding:25px;
+    }
+
+    .read-card{
+        border-radius:18px;
+    }
+
 }
 
 </style>
@@ -198,23 +223,50 @@
 
                 </a>
 
-                <form action="{{ route('bookmark.store', $book->id) }}"
+                @php
+            $bookmarks = session('bookmarks', []);
+            $isBookmarked = in_array($book->id, $bookmarks);
+        @endphp
+
+        @if($isBookmarked)
+
+            <form action="{{ route('bookmark.remove', $book->id) }}"
                 method="POST"
-                class="loading-form">
+                class="loading-form mt-3">
 
-    @csrf
+                @csrf
 
-    <button class="btn btn-warning w-100 rounded-pill">
+                <button type="submit"
+                        class="btn btn-danger w-100 rounded-pill">
 
-        <i class="fa-regular fa-bookmark me-1"></i>
+                    <i class="fa-solid fa-bookmark me-1"></i>
+                    Hapus Bookmark
 
-        Simpan Bookmark
+                </button>
 
-    </button>
+            </form>
 
-</form>
+        @else
 
-            @endif
+            <form action="{{ route('bookmark.store', $book->id) }}"
+                method="POST"
+                class="loading-form mt-3">
+
+                @csrf
+
+                <button type="submit"
+                        class="btn btn-warning w-100 rounded-pill">
+
+                    <i class="fa-regular fa-bookmark me-1"></i>
+                    Simpan Bookmark
+
+                </button>
+
+            </form>
+
+        @endif
+
+    @endif
 
                 </div>
 
@@ -232,9 +284,19 @@
             <div class="viewer-box">
 
                 <iframe
-                    src="{{ asset('storage/' . $book->file_path) }}"
-                    class="pdf-frame">
+                    src="{{ route('books.pdf', $book->id) }}"
+                    class="pdf-frame"
+                    onload="document.getElementById('pdf-loading').style.display='none'">
                 </iframe>
+
+                <div id="pdf-loading"
+                     class="text-center py-5">
+
+                    <div class="spinner-border text-primary mb-3"></div>
+
+                    <div>Memuat buku...</div>
+
+                </div>
 
             </div>
 
@@ -261,43 +323,51 @@
 
                 {{-- FORM --}}
                 @if(session('success'))
-    <div class="alert alert-success rounded-4">
-        {{ session('success') }}
-    </div>
-@endif
+            <div class="alert alert-success rounded-4">
+                {{ session('success') }}
+            </div>
+        @endif
 
-@if($errors->any())
-    <div class="alert alert-danger rounded-4">
-        @foreach($errors->all() as $error)
-            <div>{{ $error }}</div>
-        @endforeach
-    </div>
-@endif
+        @if(session('error'))
+            <div class="alert alert-danger rounded-4">
+                {{ session('error') }}
+            </div>
+        @endif
 
-<form action="{{ route('comment.store', $book->id) }}"
-      method="POST"
-      class="loading-form">
+        @if($errors->any())
+            <div class="alert alert-danger rounded-4">
+                @foreach($errors->all() as $error)
+                    <div>{{ $error }}</div>
+                @endforeach
+            </div>
+        @endif
 
-    @csrf
+                <form action="{{ route('comment.store', $book->id) }}"
+            method="POST">
 
-    <input type="text"
-           name="guest_name"
-           class="form-control rounded-4 mb-3"
-           placeholder="Nama Anda"
-           required>
+            @csrf
 
-    <textarea name="comment"
-              rows="4"
-              class="form-control rounded-4 mb-3"
-              placeholder="Tulis komentar..."
-              required></textarea>
+            <input type="text"
+                name="guest_name"
+                class="form-control rounded-4 mb-3"
+                placeholder="Nama Anda"
+                required>
 
-    <button type="submit"
-            class="btn btn-primary rounded-pill px-4">
-        Kirim Komentar
-    </button>
+            <textarea name="comment"
+                    rows="4"
+                    name="comment"
+                    class="form-control rounded-4 mb-3"
+                    placeholder="Tulis komentar..."
+                    required></textarea>
 
-</form>
+            <button type="submit"
+                    class="btn btn-primary rounded-pill px-4">
+
+                Kirim Komentar
+
+            </button>
+
+                </form>
 
                 {{-- LIST --}}
                 @forelse($book->comments as $comment)

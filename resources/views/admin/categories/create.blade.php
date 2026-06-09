@@ -29,6 +29,24 @@
 
     </div>
 
+    @if($errors->any())
+
+    <div class="alert alert-danger border-0 shadow-sm rounded-4">
+
+        <ul class="mb-0">
+
+            @foreach($errors->all() as $error)
+
+                <li>{{ $error }}</li>
+
+            @endforeach
+
+        </ul>
+
+    </div>
+
+@endif
+
     <div class="card border-0 shadow-sm rounded-4">
 
         <div class="card-body p-4">
@@ -49,7 +67,8 @@
                     <input type="text"
                            name="name"
                            class="form-control rounded-4 py-3"
-                           placeholder="Masukkan nama kategori">
+                           placeholder="Masukkan nama kategori"
+                           value="{{ old('name') }}">
 
                 </div>
 

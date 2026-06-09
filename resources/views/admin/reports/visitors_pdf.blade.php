@@ -90,7 +90,7 @@
 
         <tbody>
 
-            @foreach($visitors as $visitor)
+            @forelse($visitors as $visitor)
 
             <tr>
 
@@ -112,8 +112,13 @@
 
             </tr>
 
-            @endforeach
-
+            @empty
+            <tr>
+                <td colspan="4" class="text-center">
+                    Tidak ada data pengunjung.
+                </td>
+            </tr>
+            @endforelse
         </tbody>
 
     </table>

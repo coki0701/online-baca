@@ -41,18 +41,29 @@
                 <div class="row g-4">
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Judul Buku</label>
-                        <input type="text" name="title" class="form-control rounded-4 py-3" placeholder="Masukkan judul buku">
+                        <label  class="form-label fw-semibold">Judul Buku</label>
+                        <input  type="text"
+                                name="title"
+                                class="form-control rounded-4 py-3"
+                                placeholder="Masukkan judul buku"
+                                value="{{ old('title') }}">
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Penulis</label>
-                        <input type="text" name="author" class="form-control rounded-4 py-3" placeholder="Masukkan nama penulis">
+                        <input type="text"
+                                name="author"
+                                class="form-control rounded-4 py-3"
+                                placeholder="Masukkan nama penulis"
+                                value="{{ old('author') }}">
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Tahun</label>
-                        <input type="number" name="year" class="form-control rounded-4 py-3">
+                        <input type="number"
+                                name="year"
+                                class="form-control rounded-4 py-3"
+                                value="{{ old('year') }}">
                     </div>
 
                     <div class="col-md-6">
@@ -61,8 +72,9 @@
                             <option value="">-- Pilih Kategori --</option>
 
                             @foreach($categories as $category)
-                                <option value="{{ $category->id }}">
-                                    {{ $category->name }}
+                                <option value="{{ $category->id }}"
+                                        {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                        {{ $category->name }}
                                 </option>
                             @endforeach
                         </select>
@@ -70,7 +82,10 @@
 
                     <div class="col-12">
                         <label class="form-label fw-semibold">Deskripsi</label>
-                        <textarea name="description" rows="5" class="form-control rounded-4" placeholder="Masukkan deskripsi buku"></textarea>
+                        <textarea name="description"
+                                    rows="5"
+                                    class="form-control rounded-4"
+                                    placeholder="Masukkan deskripsi buku">{{ old('description') }}</textarea>
                     </div>
 
                     <div class="col-md-6">
@@ -81,15 +96,16 @@
                                 class="form-control rounded-4 py-3"
                                 id="coverInput">
                         <small class="text-muted">Format: JPG, JPEG, PNG</small>
-                    </div>
 
-                    <div class="mt-3">
+                        <div class="mt-3">
 
                         <img id="coverPreview"
                              class="rounded-4 shadow-sm d-none"
                              width="140">
 
                     </div>
+                
+                </div>
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">File PDF</label>

@@ -67,12 +67,18 @@
                                     <div>
 
                                         <h6 class="fw-bold mb-0">
-                                            Pengunjung
-                                        </h6>
+    {{ $history->user->name ?? 'Pengunjung' }}
+</h6>
 
-                                        <small class="text-muted">
-                                            Pembaca
-                                        </small>
+<small class="text-muted">
+
+    @if($history->user)
+        User Terdaftar
+    @else
+        Guest Reader
+    @endif
+
+</small>
 
                                     </div>
 

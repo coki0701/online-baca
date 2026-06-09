@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 
 use App\Models\Book;
@@ -15,130 +16,38 @@ use App\Models\Visitor;
 
 use Barryvdh\DomPDF\Facade\Pdf;
 
+use App\Http\Controllers\BookmarkController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\ReadHistoryController;
+use App\Http\Controllers\BookReadController;
+use App\Http\Controllers\BookPdfController;
+use App\Http\Controllers\BookCategoryController;
+use App\Http\Controllers\LandingController;
+
 use App\Http\Controllers\Admin\BookController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\AnnouncementController;
+use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\ProfileController;
+use App\Http\Controllers\Admin\CommentController as AdminCommentController;
+use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\ReadHistoryController as AdminReadHistoryController;
 
-/* LANDING PAGE */
 
-Route::get('/', function () {
 
-    $todayVisitor = Visitor::where('ip_address', request()->ip())
-    ->whereDate('visit_date', now()->toDateString())
-    ->first();
+Route::get('/', [LandingController::class, 'index']);
 
-    if(!$todayVisitor){
-
-    Visitor::create([
-
-        'ip_address' => request()->ip(),
-
-        'user_agent' => request()->userAgent(),
-
-        'visit_date' => now()->toDateString()
-
-    ]);
-
-    }
-    $query = Book::query();
-    if(request('search')){
-
-    $search = request('search');
-
-    $query->where(function($q) use ($search){
-
-        $q->where('title', 'like', '%'.$search.'%')
-
-          ->orWhere('author', 'like', '%'.$search.'%')
-
-          ->orWhere('description', 'like', '%'.$search.'%')
-
-          ->orWhereHas('category', function($category) use ($search){
-
-                $category->where(
-                    'name',
-                    'like',
-                    '%'.$search.'%'
-                );
-
-          });
-
-    });
-
-    }
-
-            if(request('category')){
-                $query->where(
-                     'category_id',
-            request('category')
-    );
-    }
-
-        $books = $query->with('category')
-        ->latest()
-        ->paginate(12)
-        ->withQueryString();
-
-        $categories = Category::all();
-
-        $announcements = \App\Models\Announcement::latest()
-        ->take(6)
-        ->get();
-
-        $setting = \App\Models\Setting::first();
-
-        $totalBooks = Book::count();
-
-        $totalCategories = Category::count();
-
-        $totalComments = \App\Models\Comment::count();
-
-        $totalReaders = \App\Models\ReadHistory::count();
-
-        $popularBooks = \App\Models\Book::with('category')
-        ->withCount('readHistories')
-        ->orderByDesc('read_histories_count')
-        ->take(4)
-        ->get();
-
-        return view('landing', compact(
-        'books',
-        'categories',
-        'announcements',
-        'setting',
-        'totalBooks',
-        'totalCategories',
-        'totalComments',
-        'totalReaders',
-        'popularBooks'
-    
-    ));
-
-});
-
-Route::get('/category/{id}', function ($id) {
-
-    $category = \App\Models\Category::findOrFail($id);
-
-    $books = \App\Models\Book::where('category_id', $id)
-        ->with('category')
-        ->latest()
-        ->get();
-
-    return view('books.category', compact(
-        'category',
-        'books'
-    ));
-
-        })->name('books.category');
+Route::get('/category/{id}', [BookCategoryController::class, 'show'])
+    ->name('books.category');
 
 
 Route::get('/dashboard', function () {
 
-    return redirect('/admin/dashboard');
+    return redirect()->route('admin.dashboard');
 
-        })->middleware('auth');
+    })->middleware(['auth', 'role:admin'])->name('dashboard');
 
 /* ADMIN LOGIN */
 Route::get('/admin-login', function () {
@@ -156,247 +65,77 @@ Route::prefix('admin')
     ->name('admin.')
     ->group(function () {
 
-        Route::get('/dashboard', [DashboardController::class, 'index'])
+Route::get('/dashboard', [DashboardController::class, 'index'])
             ->name('dashboard');
 
-        Route::resource('books', BookController::class);
 
-        Route::resource('categories', CategoryController::class);
+Route::resource('books', BookController::class);
 
-        Route::resource('users', UserController::class)
+
+Route::resource('categories', CategoryController::class);
+
+
+Route::resource('users', UserController::class)
             ->except(['show', 'create', 'store']);
 
-        Route::get('/read-histories', function () {
 
-            $histories = \App\Models\ReadHistory::with(
-                'user',
-                'book'
-            )->latest()->get();
-
-            return view(
-                'admin.read_histories.index',
-                compact('histories')
-            );
-
-        })->name('read_histories');
-
-    Route::get('/profile', function () {
-
-        return view('admin.profile');
-
-        })->name('profile');
+Route::get('/read-histories', [AdminReadHistoryController::class, 'index'])
+    ->name('read_histories');
 
 
-    Route::post('/profile/update', function (Request $request) {
+Route::get('/profile', [ProfileController::class, 'index'])
+    ->name('profile');
 
-        $request->validate([
-
-        'name' => 'required',
-
-        'email' => 'required|email',
-
-        ]);
-
-        $user = auth()->user();
-
-        $user->name = $request->name;
-
-        $user->email = $request->email;
-
-        if($request->password){
-
-        $user->password =
-            Hash::make($request->password);
-
-        }
-
-        $user->save();
-
-        return back()->with(
-        'success',
-        'Profile berhasil diperbarui'
-        );
-
-        })->name('profile.update');
+Route::post('/profile/update', [ProfileController::class, 'update'])
+    ->name('profile.update');
 
 
-    Route::get('/reports', function () {
+Route::get('/reports', [ReportController::class, 'index'])
+            ->name('reports');
 
-            $totalBooks = \App\Models\Book::count();
+Route::get('/reports/books/pdf', [ReportController::class, 'booksPdf'])
+            ->name('reports.books.pdf');
 
-            $totalCategories = \App\Models\Category::count();
 
-            $totalUsers = \App\Models\User::count();
+Route::get('/reports/categories/pdf', [ReportController::class, 'categoriesPdf'])
+            ->name('reports.categories.pdf');
 
-            $totalBookmarks = \App\Models\Bookmark::count();
 
-            $totalComments = \App\Models\Comment::count();
-
-            $totalHistories = \App\Models\ReadHistory::count();
-
-            $popularBooks = \App\Models\Book::withCount('readHistories')
-            ->orderByDesc('read_histories_count')
-            ->take(5)
-            ->get();
-
-        return view('admin.reports.index', compact(
-            'totalBooks',
-            'totalCategories',
-            'totalBookmarks',
-            'totalComments',
-            'totalHistories',
-            'popularBooks'
-        ));
-
-        })->name('reports');
-
-        
-        Route::get('/comments', function () {
-
-    $comments = \App\Models\Comment::with('user', 'book')
-        ->latest()
-        ->get();
-
-    return view(
-        'admin.comments.index',
-        compact('comments')
-    );
-
-        })->name('comments');
-
-        Route::delete('/comments/{id}', function ($id) {
-
-            \App\Models\Comment::findOrFail($id)->delete();
-
-            return back()->with(
-                'success',
-                'Komentar berhasil dihapus'
-            );
-
-        })->name('comments.destroy');
-
+Route::get('/reports/visitors/pdf', [ReportController::class, 'visitorsPdf'])
+            ->name('reports.visitors.pdf');
         
 
-        Route::get('/announcements', function () {
+Route::get('/comments', [AdminCommentController::class, 'index'])
+    ->name('comments');
 
-            $announcements = \App\Models\Announcement::latest()
-                ->get();
-
-            return view(
-                'admin.announcements.index',
-                compact('announcements')
-            );
-
-        })->name('announcements');
-
-        Route::get('/announcements/create', function () {
-
-            return view('admin.announcements.create');
-
-        })->name('announcements.create');
-
-        Route::post('/announcements', function () {
-
-            request()->validate([
-                'title' => 'required',
-                'content' => 'required',
-            ]);
-
-            \App\Models\Announcement::create([
-                'title' => request('title'),
-                'content' => request('content'),
-            ]);
-
-            return redirect()
-                ->route('admin.announcements')
-                ->with(
-                    'success',
-                    'Pengumuman berhasil ditambahkan'
-                );
-
-        })->name('announcements.store');
-
-        Route::delete('/announcements/{id}', function ($id) {
-
-            \App\Models\Announcement::findOrFail($id)->delete();
-
-            return back()->with(
-                'success',
-                'Pengumuman berhasil dihapus'
-            );
-
-        })->name('announcements.destroy');
-
-        
-
-        
-        /*
-        |--------------------------------------------------------------------------
-        | SETTINGS
-        |--------------------------------------------------------------------------
-        */
-
-        Route::get('/settings', function () {
-
-    $setting = \App\Models\Setting::first();
-
-    return view(
-        'admin.settings.index',
-        compact('setting')
-    );
-
-        })->name('settings');
+Route::delete('/comments/{id}', [AdminCommentController::class, 'destroy'])
+    ->name('comments.destroy');
 
 
-Route::post('/settings', function () {
+Route::get('/announcements', [AnnouncementController::class, 'index'])
+    ->name('announcements');
 
-    $setting = \App\Models\Setting::first();
+Route::get('/announcements/create', [AnnouncementController::class, 'create'])
+    ->name('announcements.create');
 
-    if (!$setting) {
+Route::post('/announcements', [AnnouncementController::class, 'store'])
+    ->name('announcements.store');
 
-        $setting = new \App\Models\Setting();
-    }
+Route::delete('/announcements/{id}', [AnnouncementController::class, 'destroy'])
+    ->name('announcements.destroy');
 
-    $logoPath = $setting->logo;
 
-    if (request()->hasFile('logo')) {
+Route::get('/settings', [SettingController::class, 'index'])
+    ->name('settings');
 
-        $logo = request()->file('logo');
+Route::post('/settings', [SettingController::class, 'update'])
+    ->name('settings.update');
 
-        $logoName =
-            time().'_'.$logo->getClientOriginalName();
-
-        $logo->storeAs(
-            'settings',
-            $logoName,
-            'public'
-        );
-
-        $logoPath = 'settings/'.$logoName;
-    }
-
-    $setting->updateOrCreate(
-
-        ['id' => $setting->id],
-
-        [
-            'site_name' => request('site_name'),
-            'logo' => $logoPath,
-            'description' => request('description'),
-            'footer' => request('footer'),
-            'email' => request('email'),
-            'phone' => request('phone'),
-            'address' => request('address'),
-            'open_hours' => request('open_hours')
-        ]
-    );
-
-    return back()->with(
-        'success',
-        'Pengaturan berhasil disimpan'
-    );
-
-        })->name('settings.update');
+Route::get('/settings', [SettingController::class, 'index'])
+    ->name('settings');
+    
+Route::post('/settings', [SettingController::class, 'update'])
+    ->name('settings.update');
 
     });
 
@@ -407,29 +146,8 @@ Route::post('/settings', function () {
 |--------------------------------------------------------------------------
 */
 
-Route::get('/books/read/{id}', function ($id) {
-
-    $book = Book::findOrFail($id);
-
-    if (Auth::check()) {
-
-        ReadHistory::updateOrCreate(
-            [
-                'user_id' => Auth::id(),
-                'book_id' => $id
-            ],
-            [
-                'updated_at' => now()
-            ]
-        );
-    }
-
-    return view(
-        'books.read',
-        compact('book')
-    );
-
-        })->name('books.read');
+Route::get('/books/read/{id}', [BookReadController::class, 'read'])
+    ->name('books.read');
 
 
 /*
@@ -438,47 +156,14 @@ Route::get('/books/read/{id}', function ($id) {
 |--------------------------------------------------------------------------
 */
 
-Route::post('/bookmark/{id}', function ($id) {
+Route::post('/bookmark/{id}', [BookmarkController::class, 'store'])
+    ->name('bookmark.store');
 
-    $bookmarks = session()->get('bookmarks', []);
+Route::post('/bookmark/remove/{id}', [BookmarkController::class, 'remove'])
+    ->name('bookmark.remove');
 
-    if (!in_array($id, $bookmarks)) {
-        $bookmarks[] = $id;
-    }
-
-    session()->put('bookmarks', $bookmarks);
-
-    return back()->with('success', 'Buku berhasil ditambahkan ke bookmark');
-
-        })->name('bookmark.store');
-
-
-Route::post('/bookmark/remove/{id}', function ($id) {
-
-    $bookmarks = session()->get('bookmarks', []);
-
-    $bookmarks = array_diff($bookmarks, [$id]);
-
-    session()->put('bookmarks', $bookmarks);
-
-    return back()->with('success', 'Bookmark berhasil dihapus');
-
-        })->name('bookmark.remove');
-
-
-Route::get('/my-bookmarks', function () {
-
-    $ids = session()->get('bookmarks', []);
-
-    $books = \App\Models\Book::whereIn('id', $ids)
-        ->with('category')
-        ->get();
-
-    $bookmarks = $books;
-
-    return view('books.bookmarks', compact('bookmarks'));
-
-        })->name('bookmark.list');
+Route::get('/my-bookmarks', [BookmarkController::class, 'list'])
+    ->name('bookmark.list');
 
 
 /*
@@ -487,23 +172,11 @@ Route::get('/my-bookmarks', function () {
 |--------------------------------------------------------------------------
 */
 
-Route::post('/comment/{id}', function ($id) {
+Route::get('/comment/{id}', [CommentController::class, 'redirect']);
 
-    request()->validate([
-        'guest_name' => 'required',
-        'comment' => 'required'
-    ]);
+Route::post('/comment/{id}', [CommentController::class, 'store'])
+    ->name('comment.store');
 
-    \App\Models\Comment::create([
-    'user_id' => null,
-    'book_id' => $id,
-    'guest_name' => request('guest_name'),
-    'comment' => request('comment')
-    ]);
-
-    return back()->with('success', 'Komentar berhasil dikirim');
-
-        })->name('comment.store');
 
 /*
 |--------------------------------------------------------------------------
@@ -511,22 +184,8 @@ Route::post('/comment/{id}', function ($id) {
 |--------------------------------------------------------------------------
 */
 
-Route::get('/history', function () {
-
-    $histories = ReadHistory::where(
-        'user_id',
-        Auth::id()
-    )
-    ->with('book')
-    ->latest()
-    ->get();
-
-    return view(
-        'books.history',
-        compact('histories')
-    );
-
-        })->middleware('auth')->name('history');
+Route::get('/history', [ReadHistoryController::class, 'index'])
+    ->name('history');
 
 
 /*
@@ -534,50 +193,8 @@ Route::get('/history', function () {
 | PDF REPORTS
 |--------------------------------------------------------------------------
 */
-
-
-Route::get('/admin/reports/books/pdf', function () {
-
-    $books = \App\Models\Book::latest()->get();
-
-    $pdf = Pdf::loadView(
-        'admin.reports.books_pdf',
-        compact('books')
-    );
-
-    return $pdf->download(
-        'laporan-buku.pdf'
-    );
-
-        })->name('admin.reports.books.pdf');
-
-Route::get('/admin/reports/categories/pdf', function () {
-
-    $categories = \App\Models\Category::withCount('books')
-        ->latest()
-        ->get();
-
-    $pdf = Pdf::loadView(
-        'admin.reports.categories_pdf',
-        compact('categories')
-    );
-
-    return $pdf->download('laporan-kategori.pdf');
-
-        })->name('admin.reports.categories.pdf');
-
-Route::get('/admin/reports/visitors/pdf', function () {
-
-    $visitors = \App\Models\Visitor::latest()->get();
-
-    $pdf = Pdf::loadView(
-        'admin.reports.visitors_pdf',
-        compact('visitors')
-    );
-
-    return $pdf->download('laporan-pengunjung.pdf');
-
-        })->name('admin.reports.visitors.pdf');
+Route::get('/books/pdf/{id}', [BookPdfController::class, 'show'])
+    ->name('books.pdf');
 
 
 /*

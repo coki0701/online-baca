@@ -91,7 +91,7 @@
 
     <div style="min-width:320px; max-width:320px;">
 
-        <div class="simple-card text-center h-100">
+        <div class="book-card text-center h-100 p-4">
 
             @if($book->cover)
 

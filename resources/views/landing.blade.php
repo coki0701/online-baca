@@ -533,20 +533,37 @@ footer{
 
     .nav-menu{
         position:absolute;
-        top:85px;
-        left:20px;
-        right:20px;
+        top:78px;
+        right:18px;
+        left:auto;
+        width:260px;
         background:white;
-        border-radius:20px;
-        padding:20px;
+        border-radius:22px;
+        padding:18px;
         display:none;
         flex-direction:column;
-        gap:15px;
-        box-shadow:0 10px 30px rgba(0,0,0,0.08);
+        align-items:stretch;
+        gap:10px;
+        box-shadow:0 20px 45px rgba(0,0,0,0.12);
     }
 
     .nav-menu.active{
         display:flex;
+    }
+
+    .nav-menu a{
+        width:100%;
+        padding:12px 14px;
+        border-radius:14px;
+        background:#f8fafc;
+        text-align:left;
+    }
+
+    .nav-menu .btn{
+        width:100%;
+        justify-content:center;
+        display:flex;
+        align-items:center;
     }
 
 }
@@ -655,6 +672,70 @@ footer{
         transform:translateY(0);
     }
 
+}
+
+    .category-card{
+    background:white;
+    border-radius:28px;
+    transition:0.3s ease;
+    box-shadow:0 10px 30px rgba(0,0,0,0.05);
+    border:1px solid #f1f5f9;
+}
+
+.category-card:hover{
+    transform:translateY(-8px);
+    box-shadow:0 20px 40px rgba(37,99,235,0.12);
+}
+
+.category-icon{
+    width:75px;
+    height:75px;
+    margin:auto;
+    border-radius:50%;
+    background:linear-gradient(135deg,#2563eb,#1d4ed8);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-size:28px;
+}
+
+.dark-mode .category-card{
+    background:#1e293b !important;
+    border-color:#334155 !important;
+}
+
+.dark-mode .category-card h5{
+    color:white !important;
+}
+
+body.dark-mode .modal-content,
+body.dark-mode .modal-body{
+    background:#ffffff !important;
+    color:#111827 !important;
+}
+
+body.dark-mode .modal-content h1,
+body.dark-mode .modal-content h2,
+body.dark-mode .modal-content h3,
+body.dark-mode .modal-content h4,
+body.dark-mode .modal-content h5,
+body.dark-mode .modal-content h6,
+body.dark-mode .modal-content p,
+body.dark-mode .modal-content span,
+body.dark-mode .modal-content small,
+body.dark-mode .modal-content .text-muted{
+    color:#111827 !important;
+}
+
+body.dark-mode .modal-content .badge{
+    background:#2563eb !important;
+    color:#ffffff !important;
+}
+
+body.dark-mode .modal-content .btn-secondary{
+    background:#6b7280 !important;
+    color:#ffffff !important;
 }
 
 
@@ -835,7 +916,7 @@ footer{
 
         <form action="/"
               method="GET"
-              class="loading-form>
+              class="loading-form">
               
 
             <div class="row g-3">
@@ -845,7 +926,8 @@ footer{
                     <input type="text"
                            name="search"
                            class="form-control form-control-lg"
-                           placeholder="Cari judul buku...">
+                           placeholder="Cari judul buku..."
+                           value="{{ request('search') }}">
 
                 </div>
 
@@ -860,7 +942,8 @@ footer{
 
                         @foreach($categories as $category)
 
-                            <option value="{{ $category->id }}">
+                            <option value="{{ $category->id }}"
+                                    {{ request('category') == $category->id ? 'selected' : '' }}>
 
                                 {{ $category->name }}
 
@@ -1161,10 +1244,34 @@ footer{
 
                         </a>
 
+                        @php
+                            $bookmarks = session('bookmarks', []);
+                            $isBookmarked = in_array($book->id, $bookmarks);
+                        @endphp
+
                         {{-- BOOKMARK --}}
+                        @if($isBookmarked)
+
+                        <form action="{{ route('bookmark.remove', $book->id) }}"
+                            method="POST"
+                            class="loading-form">
+
+                            @csrf
+
+                            <button class="btn btn-danger rounded-circle shadow-sm"
+                                    style="width:42px;height:42px;">
+
+                                <i class="fa-solid fa-bookmark"></i>
+
+                            </button>
+
+                        </form>
+
+                         @else
+
                         <form action="{{ route('bookmark.store', $book->id) }}"
-                              method="POST"
-                              class="loading-form">
+                            method="POST"
+                            class="loading-form">
 
                             @csrf
 
@@ -1176,6 +1283,8 @@ footer{
                             </button>
 
                         </form>
+
+                    @endif
 
                     </div>
 
@@ -1250,8 +1359,7 @@ footer{
                                         Deskripsi Buku
                                     </h6>
 
-                                    <p class="text-muted"
-                                       style="line-height:1.8;">
+                                    <p style="line-height:1.8; color:#374151; font-weight:500;">
 
                                         {{ $book->description ?? 'Tidak ada deskripsi buku.' }}
 
@@ -1442,44 +1550,67 @@ footer{
 
     </div>
 
-    <div class="d-flex gap-4 overflow-auto pb-3 px-2 justify-content-center category-slider">
+    <div class="row g-4 justify-content-center">
 
-        @foreach($categories as $category)
+        @forelse($categories as $category)
 
-        <a href="{{ route('books.category', $category->id) }}"
-           class="text-decoration-none">
+        <div class="col-lg-3 col-md-4 col-sm-6">
 
-            <div class="category-card"
-                 style="min-width:220px;">
+            <a href="{{ route('books.category', $category->id) }}"
+               class="text-decoration-none">
 
-                <div class="mb-3">
+                <div class="category-card h-100 text-center p-4">
 
-                    <i class="fa fa-book-open"
-                       style="font-size:30px;"></i>
+                    <div class="category-icon mb-3">
+
+                        <i class="fa fa-book-open"></i>
+
+                    </div>
+
+                    <h5 class="fw-bold mb-2 text-dark">
+
+                        {{ $category->name }}
+
+                    </h5>
+
+                    <div class="text-muted small mb-3">
+
+                        {{ $category->books_count ?? 0 }} Buku
+
+                    </div>
+
+                    <span class="btn btn-light rounded-pill px-4">
+
+                        Lihat Buku
+
+                    </span>
 
                 </div>
 
-                <h5 class="fw-bold mb-2">
+            </a>
 
-                    {{ $category->name }}
+        </div>
 
-                </h5>
+        @empty
 
-                <small class="text-muted">
+        <div class="col-12 text-center py-5">
 
-                    Lihat Buku
-
-                </small>
-
+            <div style="font-size:60px;">
+                📂
             </div>
 
-        </a>
+            <h4 class="fw-bold mt-3">
+                Belum Ada Kategori
+            </h4>
 
-        @endforeach
+        </div>
+
+        @endforelse
 
     </div>
 
 </div>
+
 
 {{-- FEATURES --}}
 <section class="py-5 why-section"

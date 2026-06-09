@@ -9,6 +9,7 @@ class ReadHistory extends Model
     protected $fillable = [
         'user_id',
         'book_id',
+        'visitor_id',
     ];
 
     //relasi user

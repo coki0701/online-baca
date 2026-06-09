@@ -158,6 +158,20 @@
 
     </style>
 
+    @php
+    $setting = \App\Models\Setting::first();
+@endphp
+
+@if(!empty($setting->logo))
+<link rel="icon"
+      type="image/png"
+      href="{{ asset('storage/'.$setting->logo) }}?v={{ time() }}">
+@else
+<link rel="icon"
+      type="image/png"
+      href="{{ asset('images/logowebasli.png') }}?v={{ time() }}">
+@endif
+
 </head>
 
 <body>

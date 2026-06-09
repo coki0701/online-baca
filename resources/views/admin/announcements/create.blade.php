@@ -66,9 +66,10 @@
                     </label>
 
                     <input type="text"
-                           name="title"
-                           class="form-control rounded-4 py-3"
-                           placeholder="Masukkan judul pengumuman">
+                            name="title"
+                            class="form-control rounded-4 py-3"
+                            placeholder="Masukkan judul pengumuman"
+                            value="{{ old('title') }}">
 
                 </div>
 
@@ -79,9 +80,9 @@
                     </label>
 
                     <textarea name="content"
-                              rows="7"
-                              class="form-control rounded-4"
-                              placeholder="Tulis isi pengumuman..."></textarea>
+                               rows="7"
+                               class="form-control rounded-4"
+                               placeholder="Tulis isi pengumuman...">{{ old('content') }}</textarea>
 
                 </div>
 

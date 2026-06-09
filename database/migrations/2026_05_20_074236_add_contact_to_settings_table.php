@@ -6,31 +6,49 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('settings', function (Blueprint $table) {
-            $table->string('phone')->nullable();
 
-            $table->string('email')->nullable();
+            if (!Schema::hasColumn('settings', 'phone')) {
+                $table->string('phone')->nullable();
+            }
 
-            $table->text('address')->nullable();
+            if (!Schema::hasColumn('settings', 'email')) {
+                $table->string('email')->nullable();
+            }
 
-            $table->string('open_hours')->nullable();
+            if (!Schema::hasColumn('settings', 'address')) {
+                $table->text('address')->nullable();
+            }
+
+            if (!Schema::hasColumn('settings', 'open_hours')) {
+                $table->string('open_hours')->nullable();
+            }
+
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('settings', function (Blueprint $table) {
-            //
+
+            if (Schema::hasColumn('settings', 'phone')) {
+                $table->dropColumn('phone');
+            }
+
+            if (Schema::hasColumn('settings', 'email')) {
+                $table->dropColumn('email');
+            }
+
+            if (Schema::hasColumn('settings', 'address')) {
+                $table->dropColumn('address');
+            }
+
+            if (Schema::hasColumn('settings', 'open_hours')) {
+                $table->dropColumn('open_hours');
+            }
+
         });
     }
-
-    
 };

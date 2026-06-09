@@ -318,6 +318,27 @@
 
         }
 
+        .modal-content{
+    background:#ffffff !important;
+    color:#111827 !important;
+}
+
+.modal-content h3,
+.modal-content h6,
+.modal-content p,
+.modal-content .text-muted{
+    color:#111827 !important;
+}
+
+.modal-content .badge{
+    color:white !important;
+}
+
+.modal-content .btn-secondary{
+    background:#6b7280 !important;
+    color:white !important;
+}
+
     </style>
 
 </head>
@@ -469,6 +490,65 @@
 
             </div>
 
+                        @php
+                $unreadNotifications = \App\Models\Notification::where('is_read', 0)
+                    ->latest()
+                    ->take(5)
+                    ->get();
+
+                $unreadCount = \App\Models\Notification::where('is_read', 0)->count();
+            @endphp
+
+            <div class="dropdown me-3">
+
+                <button class="btn btn-light position-relative rounded-circle"
+                        data-bs-toggle="dropdown"
+                        style="width:45px;height:45px;">
+
+                    <i class="fa fa-bell"></i>
+
+                    @if($unreadCount > 0)
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            {{ $unreadCount }}
+                        </span>
+                    @endif
+
+                </button>
+
+                <div class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 p-3"
+                    style="width:330px;">
+
+                    <h6 class="fw-bold mb-3">
+                        Notifikasi
+                    </h6>
+
+                    @forelse($unreadNotifications as $notif)
+
+                        <div class="border-bottom pb-2 mb-2">
+
+                            <small class="text-muted">
+                                {{ $notif->created_at->diffForHumans() }}
+                            </small>
+
+                            <div>
+                                {{ $notif->message }}
+                            </div>
+
+                        </div>
+
+                    @empty
+
+                        <div class="text-center text-muted py-3">
+                            Tidak ada notifikasi baru
+                        </div>
+
+                    @endforelse
+
+                </div>
+
+            </div>
+
+
             <div class="admin-profile">
 
                 <div class="text-end">
@@ -510,6 +590,46 @@
             .classList.toggle('show');
 
     }
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function(){
+
+    document.querySelectorAll('.delete-form').forEach(form => {
+
+        form.addEventListener('submit', function(e){
+
+            e.preventDefault();
+
+            Swal.fire({
+                title: 'Yakin ingin menghapus?',
+                text: 'Data yang dihapus tidak dapat dikembalikan',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+
+                if(result.isConfirmed){
+                    form.submit();
+                }
+
+            });
+
+        });
+
+    });
+
+});
 
 </script>
 

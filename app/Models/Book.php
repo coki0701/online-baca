@@ -16,15 +16,10 @@ class Book extends Model
     'file_path',
     'category_id'
 ];
-    
-public function bookmarks()
-{
-    return $this->hasMany(Bookmark::class);
-}
 
 public function category()
 {
-    return $this->belongsTo(Category::class);
+    return $this->belongsTo(\App\Models\Category::class, 'category_id');
 }
 
 public function comments()

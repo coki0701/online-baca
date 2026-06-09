@@ -84,7 +84,7 @@
 
                                         <h6 class="fw-bold mb-0">
 
-                                            {{ strtoupper(substr($comment->guest_name ?? $comment->user->name ?? 'P', 0, 1)) }}
+                                            {{ $comment->guest_name ?? $comment->user->name ?? 'Pengunjung' }}
 
                                         </h6>
 
@@ -134,14 +134,14 @@
                             <td class="text-center">
 
                                 <form action="{{ route('admin.comments.destroy', $comment->id) }}"
-                                      method="POST">
+                                      method="POST"
+                                      class="delete-form">
 
                                     @csrf
                                     @method('DELETE')
 
                                     <button type="submit"
-                                            class="btn btn-danger btn-sm rounded-pill"
-                                            onclick="return confirm('Hapus komentar ini?')">
+                                            class="btn btn-danger btn-sm rounded-pill">
 
                                         <i class="fa fa-trash"></i>
 

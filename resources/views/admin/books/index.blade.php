@@ -42,174 +42,242 @@
 
     @endif
 
-    {{-- TABLE --}}
+    {{-- CARD --}}
     <div class="card border-0 shadow-sm rounded-4">
 
         <div class="card-body p-4">
 
-    {{-- SEARCH --}}
-    <div class="mb-4">
+            {{-- SEARCH & FILTER --}}
+            <form action="{{ route('admin.books.index') }}"
+                  method="GET"
+                  class="row g-3 mb-4">
 
-        <input type="text"
-               id="searchBook"
-               class="form-control rounded-4 py-3"
-               placeholder="🔍 Cari judul buku, penulis, kategori, atau tahun...">
+                {{-- SEARCH --}}
+                <div class="col-lg-5">
 
-    </div>
+                    <input type="text"
+                           name="search"
+                           class="form-control rounded-4 py-3"
+                           placeholder="🔍 Cari judul atau penulis..."
+                           value="{{ request('search') }}">
 
-    <div class="table-responsive">
+                </div>
 
-        <table class="table table-hover align-middle">
+                {{-- FILTER --}}
+                <div class="col-lg-4">
 
-            <thead>
+                    <select name="category"
+                            class="form-select rounded-4 py-3">
 
-                <tr>
-                    <th width="60">No</th>
-                    <th>Cover</th>
-                    <th>Informasi Buku</th>
-                    <th>Kategori</th>
-                    <th>Tahun</th>
-                    <th width="190" class="text-center">Aksi</th>
-                </tr>
+                        <option value="">
+                            Semua Kategori
+                        </option>
 
-            </thead>
+                        @foreach($categories as $category)
 
-            <tbody id="bookTable">
+                            <option value="{{ $category->id }}"
+                                {{ request('category') == $category->id ? 'selected' : '' }}>
 
-                @forelse($books as $book)
+                                {{ $category->name }}
 
-                <tr>
+                            </option>
 
-                    <td>{{ $loop->iteration }}</td>
+                        @endforeach
 
-                    <td>
-                        @if($book->cover)
+                    </select>
 
-                            <img src="{{ asset('storage/' . $book->cover) }}"
-                                 width="70"
-                                 height="95"
-                                 class="rounded-4 shadow-sm"
-                                 style="object-fit:cover;">
+                </div>
 
-                        @else
+                {{-- BUTTON --}}
+                <div class="col-lg-3 d-flex gap-2">
 
-                            <div class="bg-light rounded-4 d-flex align-items-center justify-content-center"
-                                 style="width:70px;height:95px;">
+                    <button class="btn btn-primary rounded-4 px-4 w-100">
 
-                                <i class="fa fa-book text-muted"></i>
+                        Cari
 
-                            </div>
+                    </button>
 
-                        @endif
-                    </td>
+                    <a href="{{ route('admin.books.index') }}"
+                       class="btn btn-secondary rounded-4 px-4 w-100">
 
-                    <td>
-                        <h6 class="fw-bold mb-1">
-                            {{ $book->title }}
-                        </h6>
+                        Reset
 
-                        <small class="text-muted">
-                            ✍ {{ $book->author }}
-                        </small>
-                    </td>
+                    </a>
 
-                    <td>
-                        <span class="badge bg-primary rounded-pill px-3 py-2">
-                            {{ $book->category->name ?? 'Tanpa Kategori' }}
-                        </span>
-                    </td>
+                </div>
 
-                    <td>
-                        <span class="text-muted">
-                            {{ $book->year ?? '-' }}
-                        </span>
-                    </td>
+            </form>
 
-                    <td class="text-center">
+            {{-- TABLE --}}
+            <div class="table-responsive">
 
-                        <div class="d-flex justify-content-center gap-2">
+                <table class="table table-hover align-middle">
 
-                            <a href="{{ route('admin.books.edit', $book->id) }}"
-                               class="btn btn-warning btn-sm rounded-pill">
+                    <thead>
 
-                                <i class="fa fa-edit"></i>
+                        <tr>
 
-                            </a>
+                            <th width="60">No</th>
 
-                            <form action="{{ route('admin.books.destroy', $book->id) }}"
-                                  method="POST">
+                            <th>Cover</th>
 
-                                @csrf
-                                @method('DELETE')
+                            <th>Informasi Buku</th>
 
-                                <button type="submit"
-                                        class="btn btn-danger btn-sm rounded-pill"
-                                        onclick="return confirm('Yakin hapus buku ini?')">
+                            <th>Kategori</th>
 
-                                    <i class="fa fa-trash"></i>
+                            <th>Tahun</th>
 
-                                </button>
+                            <th width="190" class="text-center">
 
-                            </form>
+                                Aksi
 
-                        </div>
+                            </th>
 
-                    </td>
+                        </tr>
 
-                </tr>
+                    </thead>
 
-                @empty
+                    <tbody>
 
-                <tr>
-                    <td colspan="6" class="text-center py-5">
+                        @forelse($books as $book)
 
-                        <div style="font-size:55px;">
-                            📚
-                        </div>
+                        <tr>
 
-                        <h5 class="fw-bold mt-3">
-                            Belum Ada Buku
-                        </h5>
+                            <td>
+                                {{ $books->firstItem() + $loop->index }}
+                            </td>
 
-                        <p class="text-muted mb-0">
-                            Tambahkan buku pertama untuk mulai mengisi perpustakaan digital.
-                        </p>
+                            <td>
 
-                    </td>
-                </tr>
+                                @if($book->cover)
 
-                @endforelse
+                                    <img src="{{ asset('storage/' . $book->cover) }}"
+                                         width="70"
+                                         height="95"
+                                         class="rounded-4 shadow-sm"
+                                         style="object-fit:cover;">
 
-            </tbody>
+                                @else
 
-        </table>
+                                    <div class="bg-light rounded-4 d-flex align-items-center justify-content-center"
+                                         style="width:70px;height:95px;">
 
-    </div>
+                                        <i class="fa fa-book text-muted"></i>
 
-</div>
+                                    </div>
 
-<script>
-    const searchBook = document.getElementById('searchBook');
-    const bookRows = document.querySelectorAll('#bookTable tr');
+                                @endif
 
-    if(searchBook){
+                            </td>
 
-        searchBook.addEventListener('keyup', function(){
+                            <td>
 
-            let keyword = this.value.toLowerCase();
+                                <h6 class="fw-bold mb-1">
 
-            bookRows.forEach(function(row){
+                                    {{ $book->title }}
 
-                let text = row.innerText.toLowerCase();
+                                </h6>
 
-                row.style.display = text.includes(keyword) ? '' : 'none';
+                                <small class="text-muted">
 
-            });
+                                    ✍ {{ $book->author }}
 
-        });
+                                </small>
 
-    }
-</script>
+                            </td>
+
+                            <td>
+
+                                <span class="badge bg-primary rounded-pill px-3 py-2">
+
+                                    {{ $book->category->name ?? 'Tanpa Kategori' }}
+
+                                </span>
+
+                            </td>
+
+                            <td>
+
+                                <span class="text-muted">
+
+                                    {{ $book->year ?? '-' }}
+
+                                </span>
+
+                            </td>
+
+                            <td class="text-center">
+
+                                <div class="d-flex justify-content-center gap-2">
+
+                                    <a href="{{ route('admin.books.edit', $book->id) }}"
+                                       class="btn btn-warning btn-sm rounded-pill">
+
+                                        <i class="fa fa-edit"></i>
+
+                                    </a>
+
+                                    <form action="{{ route('admin.books.destroy', $book->id) }}"
+                                          method="POST"
+                                          class="delete-form">
+
+                                        @csrf
+                                        @method('DELETE')
+
+                                        <button type="submit"
+                                                class="btn btn-danger btn-sm rounded-pill">
+
+                                            <i class="fa fa-trash"></i>
+
+                                        </button>
+
+                                    </form>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                        @empty
+
+                        <tr>
+
+                            <td colspan="6"
+                                class="text-center py-5">
+
+                                <div style="font-size:55px;">
+                                    📚
+                                </div>
+
+                                <h5 class="fw-bold mt-3">
+                                    Belum Ada Buku
+                                </h5>
+
+                                <p class="text-muted mb-0">
+                                    Tambahkan buku pertama untuk mulai mengisi perpustakaan digital.
+                                </p>
+
+                            </td>
+
+                        </tr>
+
+                        @endforelse
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            {{-- PAGINATION --}}
+            <div class="mt-4">
+
+                {{ $books->links() }}
+
+            </div>
+
+        </div>
 
     </div>
 

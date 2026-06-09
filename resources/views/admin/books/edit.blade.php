@@ -43,17 +43,26 @@
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Judul Buku</label>
-                        <input type="text" name="title" value="{{ $book->title }}" class="form-control rounded-4 py-3">
+                        <input type="text" 
+                                name="title" 
+                                value="{{ old('title', $book->title) }}" 
+                                class="form-control rounded-4 py-3">
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Penulis</label>
-                        <input type="text" name="author" value="{{ $book->author }}" class="form-control rounded-4 py-3">
+                        <input type="text" 
+                                name="author" 
+                                value="{{ old('author', $book->author) }}" 
+                                class="form-control rounded-4 py-3">
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Tahun</label>
-                        <input type="number" name="year" value="{{ $book->year }}" class="form-control rounded-4 py-3">
+                        <input type="number" 
+                                name="year" 
+                                value="{{ old('yaer', $book->year) }}" 
+                                class="form-control rounded-4 py-3">
                     </div>
 
                     <div class="col-md-6">
@@ -61,7 +70,7 @@
                         <select name="category_id" class="form-select rounded-4 py-3">
                             @foreach($categories as $category)
                                 <option value="{{ $category->id }}"
-                                    {{ $book->category_id == $category->id ? 'selected' : '' }}>
+                                    {{ old('category_id', $book->category_id) == $category->id ? 'selected' : '' }}>
                                     {{ $category->name }}
                                 </option>
                             @endforeach
@@ -70,7 +79,9 @@
 
                     <div class="col-12">
                         <label class="form-label fw-semibold">Deskripsi</label>
-                        <textarea name="description" rows="5" class="form-control rounded-4">{{ $book->description }}</textarea>
+                        <textarea name="description"
+                                  rows="5"
+                                  class="form-control rounded-4">{{ old('description', $book->description) }}</textarea>
                     </div>
 
                     <div class="col-md-6">
@@ -79,7 +90,7 @@
                                 accept=".jpg,.jpeg,.png" 
                                 name="cover" 
                                 class="form-control rounded-4 py-3"
-                                id="coverInput">>
+                                id="coverInput">
 
                         @if($book->cover)
                             <div class="mt-3">

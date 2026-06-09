@@ -145,13 +145,12 @@
 
                             <form action="{{ route('bookmark.remove', $bookmark->id) }}"
                                   method="POST"
-                                  class="loading-form">
+                                  class="delete-form">
 
                                 @csrf
 
                                 <button type="submit"
-                                        class="btn btn-danger rounded-pill"
-                                        onclick="return confirm('Hapus dari bookmark?')">
+                                        class="btn btn-danger rounded-pill">
 
                                     <i class="fa-solid fa-bookmark"></i>
 

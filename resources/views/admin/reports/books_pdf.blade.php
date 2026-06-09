@@ -78,14 +78,23 @@
         </thead>
 
         <tbody>
-            @foreach($books as $book)
+            @forelse($books as $book)
             <tr>
                 <td class="text-center">{{ $loop->iteration }}</td>
                 <td>{{ $book->title }}</td>
                 <td>{{ $book->author }}</td>
                 <td class="text-center">{{ $book->year }}</td>
             </tr>
-            @endforeach
+
+            @empty
+
+            <tr>
+                <td colspan="4" class="text-center">
+                    Tidak ada data buku.
+                </td>
+            </tr>
+
+            @endforelse
         </tbody>
     </table>
 

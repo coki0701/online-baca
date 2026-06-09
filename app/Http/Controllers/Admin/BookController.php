@@ -16,13 +16,48 @@ class BookController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function index()
-    {
-        $books = Book::latest()->get();
+    public function index(Request $request)
+{
+    $query = Book::with('category');
 
-        return view('admin.books.index', compact('books'));
+    /*
+    |--------------------------------------------------------------------------
+    | SEARCH JUDUL / PENULIS
+    |--------------------------------------------------------------------------
+    */
+
+    if ($request->search) {
+
+        $query->where(function ($q) use ($request) {
+
+            $q->where('title', 'like', '%' . $request->search . '%')
+              ->orWhere('author', 'like', '%' . $request->search . '%');
+
+        });
+
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | FILTER KATEGORI
+    |--------------------------------------------------------------------------
+    */
+
+    if ($request->category) {
+
+        $query->where('category_id', $request->category);
+
+    }
+
+    $books = $query->latest()->paginate(10);
+
+    $categories = Category::withCount('books')
+        ->latest()
+        ->get();
+
+    return view('admin.books.index', compact('books', 'categories')
+    );
+}
     /*
     |--------------------------------------------------------------------------
     | CREATE
@@ -44,48 +79,57 @@ class BookController extends Controller
 
     public function store(Request $request)
     {
-    
-    $request->validate([
+        $request->validate([
 
-    'title' => 'required|string|max:255',
+            'title' => 'required|string|max:255',
 
-    'author' => 'required|string|max:255',
+            'author' => 'required|string|max:255',
 
-    'year' => 'required|numeric|min:1900|max:'.date('Y'),
+            'year' => 'required|numeric|min:1900|max:' . date('Y'),
 
-    'category_id' => 'required|exists:categories,id',
+            'category_id' => 'required|exists:categories,id',
 
-    'description' => 'required|string',
+            'description' => 'required|string',
 
-    'cover' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'cover' => 'required|image|mimes:jpg,jpeg,png|max:2048',
 
-    'file' => 'required|mimes:pdf|max:204800',
+            'file' => 'required|file|mimetypes:application/pdf|max:204800',
 
-], [
+        ], [
 
-    'title.required' => 'Judul buku wajib diisi',
+            'title.required' => 'Judul buku wajib diisi',
 
-    'author.required' => 'Penulis wajib diisi',
+            'author.required' => 'Penulis wajib diisi',
 
-    'year.required' => 'Tahun wajib diisi',
-    'year.min' => 'Tahun tidak valid',
-    'year.max' => 'Tahun tidak boleh melebihi tahun sekarang',
+            'year.required' => 'Tahun wajib diisi',
 
-    'category_id.required' => 'Kategori wajib dipilih',
-    'category_id.exists' => 'Kategori tidak valid',
+            'year.min' => 'Tahun tidak valid',
 
-    'description.required' => 'Deskripsi wajib diisi',
+            'year.max' => 'Tahun tidak boleh melebihi tahun sekarang',
 
-    'cover.required' => 'Cover wajib diupload',
-    'cover.image' => 'Cover harus berupa gambar',
-    'cover.mimes' => 'Cover harus berformat JPG, JPEG, atau PNG',
-    'cover.max' => 'Ukuran cover maksimal 2 MB',
+            'category_id.required' => 'Kategori wajib dipilih',
 
-    'file.required' => 'File PDF wajib diupload',
-    'file.mimes' => 'File harus berformat PDF',
-    'file.max' => 'Ukuran file PDF maksimal 200 MB',
+            'category_id.exists' => 'Kategori tidak valid',
 
-]);
+            'description.required' => 'Deskripsi wajib diisi',
+
+            'cover.required' => 'Cover wajib diupload',
+
+            'cover.image' => 'Cover harus berupa gambar',
+
+            'cover.mimes' => 'Cover harus berformat JPG, JPEG, atau PNG',
+
+            'cover.max' => 'Ukuran cover maksimal 2 MB',
+
+            'file.required' => 'File PDF wajib diupload',
+
+            'file.file' => 'File PDF tidak valid',
+
+            'file.mimetypes' => 'File harus berformat PDF asli',
+
+            'file.max' => 'Ukuran file PDF maksimal 200 MB',
+
+        ]);
 
         /*
         |--------------------------------------------------------------------------
@@ -93,25 +137,22 @@ class BookController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        if ($request->hasFile('cover')) {
+        $cover = $request->file('cover');
 
-            $cover = $request->file('cover');
+        $coverOriginalName = pathinfo(
+            $cover->getClientOriginalName(),
+            PATHINFO_FILENAME
+        );
 
-            $originalName = pathinfo(
-                $cover->getClientOriginalName(),
-                PATHINFO_FILENAME
-            );
+        $coverOriginalName = str_replace(' ', '_', $coverOriginalName);
 
-            $originalName = str_replace(' ', '_', $originalName);
+        $coverExtension = $cover->getClientOriginalExtension();
 
-            $extension = $cover->getClientOriginalExtension();
+        $coverName = time() . '_' . $coverOriginalName . '.' . $coverExtension;
 
-            $coverName = time() . '_' . $originalName . '.' . $extension;
+        $cover->storeAs('covers', $coverName, 'public');
 
-            $cover->storeAs('covers', $coverName, 'public');
-
-            $coverPath = 'covers/' . $coverName;
-        }
+        $coverPath = 'covers/' . $coverName;
 
         /*
         |--------------------------------------------------------------------------
@@ -119,25 +160,22 @@ class BookController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        if ($request->hasFile('file')) {
+        $file = $request->file('file');
 
-            $file = $request->file('file');
+        $fileOriginalName = pathinfo(
+            $file->getClientOriginalName(),
+            PATHINFO_FILENAME
+        );
 
-            $originalName = pathinfo(
-                $file->getClientOriginalName(),
-                PATHINFO_FILENAME
-            );
+        $fileOriginalName = str_replace(' ', '_', $fileOriginalName);
 
-            $originalName = str_replace(' ', '_', $originalName);
+        $fileExtension = $file->getClientOriginalExtension();
 
-            $extension = $file->getClientOriginalExtension();
+        $fileName = time() . '_' . $fileOriginalName . '.' . $fileExtension;
 
-            $filename = time() . '_' . $originalName . '.' . $extension;
+        $file->storeAs('books', $fileName, 'public');
 
-            $file->storeAs('books', $filename, 'public');
-
-            $filePath = 'books/' . $filename;
-        }
+        $filePath = 'books/' . $fileName;
 
         /*
         |--------------------------------------------------------------------------
@@ -168,7 +206,8 @@ class BookController extends Controller
 
     public function read($id)
     {
-        $book = Book::findOrFail($id);
+        $book = Book::with(['category', 'comments'])
+            ->findOrFail($id);
 
         return view('books.read', compact('book'));
     }
@@ -199,11 +238,50 @@ class BookController extends Controller
         $book = Book::findOrFail($id);
 
         $request->validate([
-            'title' => 'required',
-            'author' => 'required',
-            'year' => 'required|numeric',
-            'category_id' => 'required',
-            'description' => 'nullable',
+
+            'title' => 'required|string|max:255',
+
+            'author' => 'required|string|max:255',
+
+            'year' => 'required|numeric|min:1900|max:' . date('Y'),
+
+            'category_id' => 'required|exists:categories,id',
+
+            'description' => 'nullable|string',
+
+            'cover' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+
+            'file' => 'nullable|file|mimetypes:application/pdf|max:204800',
+
+        ], 
+        [
+
+            'title.required' => 'Judul buku wajib diisi',
+
+            'author.required' => 'Penulis wajib diisi',
+
+            'year.required' => 'Tahun wajib diisi',
+
+            'year.min' => 'Tahun tidak valid',
+
+            'year.max' => 'Tahun tidak boleh melebihi tahun sekarang',
+
+            'category_id.required' => 'Kategori wajib dipilih',
+
+            'category_id.exists' => 'Kategori tidak valid',
+
+            'cover.image' => 'Cover harus berupa gambar',
+
+            'cover.mimes' => 'Cover harus berformat JPG, JPEG, atau PNG',
+
+            'cover.max' => 'Ukuran cover maksimal 2 MB',
+
+            'file.file' => 'File PDF tidak valid',
+
+            'file.mimetypes' => 'File harus berformat PDF asli',
+
+            'file.max' => 'Ukuran file PDF maksimal 200 MB',
+
         ]);
 
         $data = [
@@ -222,23 +300,22 @@ class BookController extends Controller
 
         if ($request->hasFile('cover')) {
 
-            // hapus cover lama
             if ($book->cover) {
                 Storage::disk('public')->delete($book->cover);
             }
 
             $cover = $request->file('cover');
 
-            $originalName = pathinfo(
+            $coverOriginalName = pathinfo(
                 $cover->getClientOriginalName(),
                 PATHINFO_FILENAME
             );
 
-            $originalName = str_replace(' ', '_', $originalName);
+            $coverOriginalName = str_replace(' ', '_', $coverOriginalName);
 
-            $extension = $cover->getClientOriginalExtension();
+            $coverExtension = $cover->getClientOriginalExtension();
 
-            $coverName = time() . '_' . $originalName . '.' . $extension;
+            $coverName = time() . '_' . $coverOriginalName . '.' . $coverExtension;
 
             $cover->storeAs('covers', $coverName, 'public');
 
@@ -253,27 +330,26 @@ class BookController extends Controller
 
         if ($request->hasFile('file')) {
 
-            // hapus pdf lama
             if ($book->file_path) {
                 Storage::disk('public')->delete($book->file_path);
             }
 
             $file = $request->file('file');
 
-            $originalName = pathinfo(
+            $fileOriginalName = pathinfo(
                 $file->getClientOriginalName(),
                 PATHINFO_FILENAME
             );
 
-            $originalName = str_replace(' ', '_', $originalName);
+            $fileOriginalName = str_replace(' ', '_', $fileOriginalName);
 
-            $extension = $file->getClientOriginalExtension();
+            $fileExtension = $file->getClientOriginalExtension();
 
-            $filename = time() . '_' . $originalName . '.' . $extension;
+            $fileName = time() . '_' . $fileOriginalName . '.' . $fileExtension;
 
-            $file->storeAs('books', $filename, 'public');
+            $file->storeAs('books', $fileName, 'public');
 
-            $data['file_path'] = 'books/' . $filename;
+            $data['file_path'] = 'books/' . $fileName;
         }
 
         $book->update($data);
@@ -293,16 +369,21 @@ class BookController extends Controller
     {
         $book = Book::findOrFail($id);
 
-        // hapus cover
         if ($book->cover) {
             Storage::disk('public')->delete($book->cover);
         }
 
-        // hapus pdf
         if ($book->file_path) {
             Storage::disk('public')->delete($book->file_path);
         }
 
+        // hapus komentar buku
+        \App\Models\Comment::where('book_id', $book->id)->delete();
+
+        // hapus riwayat baca buku
+        \App\Models\ReadHistory::where('book_id', $book->id)->delete();
+
+        // hapus buku
         $book->delete();
 
         return back()->with('success', 'Buku berhasil dihapus');

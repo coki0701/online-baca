@@ -30,6 +30,16 @@
 
     @endif
 
+    @if(session('error'))
+
+        <div class="alert alert-danger border-0 shadow-sm rounded-4">
+
+            {{ session('error') }}
+
+        </div>
+
+    @endif
+
     {{-- TABLE --}}
     <div class="card border-0 shadow-sm rounded-4">
 
@@ -132,14 +142,14 @@
                                     </a>
 
                                     <form action="{{ route('admin.users.destroy', $user->id) }}"
-                                          method="POST">
+                                          method="POST"
+                                          class="delete-form">
 
                                         @csrf
                                         @method('DELETE')
 
                                         <button type="submit"
-                                                class="btn btn-danger btn-sm rounded-pill"
-                                                onclick="return confirm('Yakin hapus user ini?')">
+                                                class="btn btn-danger btn-sm rounded-pill">
 
                                             <i class="fa fa-trash"></i>
 
