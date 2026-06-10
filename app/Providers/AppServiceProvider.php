@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Pagination\Paginator;
 use App\Models\Setting;
@@ -21,11 +22,12 @@ class AppServiceProvider extends ServiceProvider
      * Bootstrap services.
      */
     public function boot(): void
-    {
-        Paginator::useBootstrapFive();
+{
+    if (Schema::hasTable('settings')) {
 
         $setting = Setting::first();
 
-        View::share('globalSetting', $setting);
+        view()->share('setting', $setting);
     }
+}
 }
