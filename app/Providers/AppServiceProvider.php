@@ -2,32 +2,34 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use App\Models\Setting;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
-use Illuminate\Pagination\Paginator;
-use App\Models\Setting;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap services.
-     */
     public function boot(): void
-{
-    if (Schema::hasTable('settings')) {
+    {
+        try {
 
-        $setting = Setting::first();
+            if (Schema::hasTable('settings')) {
 
-        view()->share('setting', $setting);
+                $setting = Setting::first();
+
+                View::share('setting', $setting);
+
+            }
+
+        } catch (\Exception $e) {
+
+            View::share('setting', null);
+
+        }
     }
-}
 }
