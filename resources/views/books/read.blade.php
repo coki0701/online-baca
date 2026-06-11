@@ -284,19 +284,10 @@
             <div class="viewer-box">
 
                 <iframe
+                    id="pdfViewer"
                     src="{{ route('books.pdf', $book->id) }}"
-                    class="pdf-frame"
-                    onload="document.getElementById('pdf-loading').style.display='none'">
+                    class="pdf-frame">
                 </iframe>
-
-                <div id="pdf-loading"
-                     class="text-center py-5">
-
-                    <div class="spinner-border text-primary mb-3"></div>
-
-                    <div>Memuat buku...</div>
-
-                </div>
 
             </div>
 
