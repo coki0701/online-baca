@@ -283,10 +283,16 @@
 
             <div class="viewer-box">
 
+                <a href="{{ route('books.pdf', $book->id) }}"
+                    target="_blank"
+                    class="btn btn-warning rounded-pill mb-3 d-lg-none w-100">
+                    📖 Buka PDF
+                </a>
+
                 <iframe
                     id="pdfViewer"
                     src="{{ route('books.pdf', $book->id) }}"
-                    class="pdf-frame">
+                    class="pdf-frame d-none d-lg-block">
                 </iframe>
 
             </div>
