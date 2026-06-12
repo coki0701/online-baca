@@ -738,6 +738,32 @@ body.dark-mode .modal-content .btn-secondary{
     color:#ffffff !important;
 }
 
+.pagination {
+    justify-content: center;
+    gap: 8px;
+    margin-top: 40px;
+}
+
+.pagination .page-link {
+    background: #1e293b;
+    color: #fff;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 10px 16px;
+}
+
+.pagination .page-item.active .page-link {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+}
+
+.pagination .page-item.disabled .page-link {
+    background: #0f172a;
+    color: #64748b;
+    border-color: #334155;
+}
+
 
     </style>
 
