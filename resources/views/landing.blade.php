@@ -764,6 +764,17 @@ body.dark-mode .modal-content .btn-secondary{
     border-color: #334155;
 }
 
+.pagination svg{
+    width: 20px !important;
+    height: 20px !important;
+}
+
+.pagination .page-link{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
 
     </style>
 
@@ -1460,8 +1471,7 @@ body.dark-mode .modal-content .btn-secondary{
     {{-- PAGINATION --}}
     <div class="mt-5 d-flex justify-content-center">
 
-        {{ $books->links() }}
-
+        {{ $books->onEachSide(1)->links('pagination::bootstrap-5') }}
     </div>
 
 </div>
